@@ -22,8 +22,9 @@ void print_file_collaborator(Collaborator, FILE *);
 void search_collaborator_menu(FILE *);
 int search_collaborator_code(FILE *, int);
 int search_collaborator_name(FILE *, char[]);
-int search_collaborator_menu_salary(FILE *);
+int search_collaborator_menu_change(FILE *);
 void change_salary(int, FILE *);
+void remove_collaborator(int, FILE *);
 
 int main()
 {
@@ -61,13 +62,16 @@ int main()
         break;
      case 3:
         file = fopen("collaborators.txt", "r+");
-        int code = search_collaborator_menu_salary(file);
+        int code1 = search_collaborator_menu_change(file);
         system("cls");
-        change_salary(code, file);
+        change_salary(code1, file);
         system("cls");
         break;
      case 4:
-        printf("Remover\n");
+        file = fopen("collaborators.txt", "r+");
+        int code2 = search_collaborator_menu_change(file);
+        system("cls");
+        remove_collaborator(code2, file);
         break;
      case 5:
         printf("Imprimir\n");
@@ -263,7 +267,7 @@ int search_collaborator_name(FILE *file, char query[]){
     return code_colaborator;
 }
 
-int search_collaborator_menu_salary(FILE *file){
+int search_collaborator_menu_change(FILE *file){
     int cod = 0;
     int opc = 0;
     char name[MAX];
@@ -358,4 +362,48 @@ void change_salary(int code_collaborator, FILE *file) {
     }
 
     printf("Salario atualizado para o colaborador de codigo %d.\n", code_collaborator);
+}
+
+void remove_collaborator(int code_collaborator, FILE *file){
+    FILE *temp_file = fopen("collaborators.tmp", "w");
+    if (file == NULL || temp_file == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    Collaborator c;
+    int line_number = 0;
+    int found = 0;
+
+    // Copiar cada linha do arquivo original para o arquivo temporário, exceto a linha do colaborador a ser removido
+    while (fscanf(file, "%d|%99[^|]|%99[^|]|%f\n", &c.code, c.name, c.email, &c.salary) == 4) {
+        line_number++;
+
+        if (code_collaborator == c.code) {
+            found = 1;
+            continue; // Pular a linha do colaborador a ser removido
+        }
+
+        fprintf(temp_file, "%d|%s|%s|%.2f\n", c.code, c.name, c.email, c.salary);
+    }
+
+    fclose(file);
+    fclose(temp_file);
+
+    if (!found) {
+        remove("collaborators.tmp"); // Remover o arquivo temporário se o colaborador não foi encontrado
+        printf("Colaborador de codigo %d não encontrado.\n", code_collaborator);
+        return;
+    }
+
+    // Remover o arquivo original se existir
+    remove("collaborators.txt");
+
+    // Renomear o arquivo temporário para substituir o arquivo original
+    if (rename("collaborators.tmp", "collaborators.txt") != 0) {
+        perror("Erro ao renomear arquivo");
+        return;
+    }
+
+    printf("Colaborador de codigo %d removido.\n", code_collaborator);
 }
