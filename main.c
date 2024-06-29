@@ -25,6 +25,7 @@ int search_collaborator_name(FILE *, char[]);
 int search_collaborator_menu_change(FILE *);
 void change_salary(int, FILE *);
 void remove_collaborator(int, FILE *);
+float sum_collaborator(FILE *);
 
 int main()
 {
@@ -74,7 +75,12 @@ int main()
         remove_collaborator(code2, file);
         break;
      case 5:
-        printf("Imprimir\n");
+        file = fopen("collaborators.txt", "r");
+        float sum = sum_collaborator(file);
+        printf("==============================\n");
+        printf("Soma dos Salarios: %.2f\n", sum);
+        printf("==============================\n");
+        fclose(file);
         break;
      case 0:
          printf("Programa encerrado!\n");
@@ -406,4 +412,16 @@ void remove_collaborator(int code_collaborator, FILE *file){
     }
 
     printf("Colaborador de codigo %d removido.\n", code_collaborator);
+}
+
+float sum_collaborator(FILE *file){
+
+    Collaborator c;
+    float sum = 0;
+
+    while(fscanf(file, "%d|%99[^|]|%99[^|]|%f\n", &c.code, c.name, c.email, &c.salary) == 4 ){
+        sum = sum + c.salary;
+    }
+
+    return sum;
 }
