@@ -1,0 +1,4 @@
+1|Mariana|mari@gmail.com|1000.00
+2|Livia|lima@gmail.com|700.00
+3|Dani|dani@gmail.com|2000.00
+4|Veronica|vero@gmail.com|0.00
