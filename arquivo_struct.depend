@@ -1,6 +1,6 @@
 # depslib dependency file v1.0
-1719673717 source:c:\users\maria\onedrive\desktop\faculdade\aeds\arquivo_struct\main.c
+1719698839 source:c:\users\maria\onedrive\desktop\faculdade\aeds\arquivo_struct\main.c
 	<stdio.h>
-	<stdlib.h>
 	<string.h>
+	<ctype.h>
 

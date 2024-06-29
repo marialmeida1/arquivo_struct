@@ -4,6 +4,7 @@
 
 // Constantes
 #define MAX 100
+#define MAX_LINE 256
 
 // Struct Colaborador
 typedef struct Collaborator {
@@ -19,8 +20,10 @@ int menu();
 void register_collaborator(FILE *);
 void print_file_collaborator(Collaborator, FILE *);
 void search_collaborator_menu(FILE *);
-void search_collaborator_code(FILE *, int);
-void search_collaborator_name(FILE *, char[]);
+int search_collaborator_code(FILE *, int);
+int search_collaborator_name(FILE *, char[]);
+int search_collaborator_menu_salary(FILE *);
+void change_salary(int, FILE *);
 
 int main()
 {
@@ -57,7 +60,11 @@ int main()
         system("cls");
         break;
      case 3:
-        printf("Alterar\n");
+        file = fopen("collaborators.txt", "r+");
+        int code = search_collaborator_menu_salary(file);
+        system("cls");
+        change_salary(code, file);
+        system("cls");
         break;
      case 4:
         printf("Remover\n");
@@ -180,10 +187,11 @@ void search_collaborator_menu(FILE *file){
     } while(opc != 0 && opc < 3);
 }
 
-void search_collaborator_code(FILE *file, int query){
+int search_collaborator_code(FILE *file, int query){
 
     Collaborator c;
     int find = 0;
+    int code_collaborator;
 
 
     while(fscanf(file, "%d|%99[^|]|%99[^|]|%f\n", &c.code, c.name, c.email, &c.salary) == 4 ){
@@ -198,6 +206,7 @@ void search_collaborator_code(FILE *file, int query){
             printf("Salario: %.2f\n", c.salary);
             printf("==============================\n\n");
 
+            code_collaborator = c.code;
             find++;
         }
     }
@@ -206,13 +215,20 @@ void search_collaborator_code(FILE *file, int query){
 
     if(find == 0){
         printf("==============================\n");
-        printf(" Colaborador nao encontrado\n\n");
+        printf(" Colaborador nao encontrado\n");
+        printf("==============================\n\n");
+
+        code_collaborator = 0;
     }
+
+    return code_collaborator;
 }
 
-void search_collaborator_name(FILE *file, char query[]){
+int search_collaborator_name(FILE *file, char query[]){
+
     Collaborator c;
     int find = 0;
+    int code_colaborator;
 
 
     while(fscanf(file, "%d|%99[^|]|%99[^|]|%f\n", &c.code, c.name, c.email, &c.salary) == 4 ){
@@ -229,6 +245,7 @@ void search_collaborator_name(FILE *file, char query[]){
             printf("Salario: %.2f\n", c.salary);
             printf("==============================\n\n");
 
+            code_colaborator = c.code;
             find++;
         }
     }
@@ -239,6 +256,106 @@ void search_collaborator_name(FILE *file, char query[]){
         printf("==============================\n");
         printf(" Colaborador nao encontrado\n");
         printf("==============================\n\n");
+
+        code_colaborator = 0;
     }
+
+    return code_colaborator;
 }
 
+int search_collaborator_menu_salary(FILE *file){
+    int cod = 0;
+    int opc = 0;
+    char name[MAX];
+    int code_collaborator;
+
+    printf("==============================\n");
+    printf("       FORMA DE PESQUISA      \n");
+    printf("==============================\n");
+    printf(" 1 - Codigo do colaborador\n");
+    printf(" 2 - Nome do colaborador\n");
+    printf(" 0 - Sair\n");
+    printf("==============================\n");
+    printf(" Sua opcao: ");
+    scanf("%d", &opc);
+    printf("==============================\n");
+
+    switch(opc) {
+    case 1:
+        printf(" Digite o codigo do colaborador: ");
+        scanf("%d", &cod);
+
+        code_collaborator = search_collaborator_code(file, cod);
+
+        break;
+     case 2:
+        printf(" Digite o nome do colaborador: ");
+        while(getchar() != '\n'); // limpa buffer
+
+        fgets(name, MAX, stdin);
+        remove_line(name);
+
+        code_collaborator = search_collaborator_name(file, name);
+        break;
+     case 0:
+         printf("Saindo da funcao!\n\n");
+        break;
+     default:
+        printf("Saindo da funcao!\n\n");
+        break;
+    }
+
+    return code_collaborator;
+}
+
+void change_salary(int code_collaborator, FILE *file) {
+
+    // Criando arquivo temp
+    FILE *temp_file = fopen("collaborators.tmp", "w");
+    if (temp_file == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    Collaborator c;
+    int line_number = 0;
+    int found = 0;
+    float new_salary;
+
+    while (fscanf(file, "%d|%99[^|]|%99[^|]|%f\n", &c.code, c.name, c.email, &c.salary) == 4) {
+        line_number++;
+
+        if (code_collaborator == c.code) {
+            found = 1;
+
+            printf("==============================\n");
+            printf("Digite o novo salario: ");
+            scanf("%f", &new_salary);
+            printf("==============================\n");
+            c.salary = new_salary;
+        }
+
+        fprintf(temp_file, "%d|%s|%s|%.2f\n", c.code, c.name, c.email, c.salary);
+    }
+
+    fclose(file);
+    fclose(temp_file);
+
+
+    // Colaborador não encontrado
+    if (!found) {
+        remove("collaborators.tmp");
+        return;
+    }
+
+    // Remover o arquivo original
+    remove("collaborators.txt");
+
+    // Renomear o arquivo temporário
+    if (rename("collaborators.tmp", "collaborators.txt") != 0) {
+        perror("Erro ao renomear arquivo");
+        return;
+    }
+
+    printf("Salario atualizado para o colaborador de codigo %d.\n", code_collaborator);
+}
